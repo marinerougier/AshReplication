@@ -89,7 +89,6 @@
    var cond_warmth = jsPsych.data.getURLVariable("cond_warmth");
   if(cond_warmth == null) {cond_warmth = jsPsych.randomization.sampleWithoutReplacement(["warm", "cold"], 1)[0];}
 
-
   /* EXPERIMENT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   /* Fullscreen mode & Consent */
     var activeFullscreen = {
@@ -137,17 +136,90 @@
       html += "<h1>Study on person perception</h1>";
       html += "<p class='justify'>Psychological studies have shown that <b>people can easily form impressions of others</b>. The current study is about <b>creative impression formation</b>, ";
       html += "that is, the ability to quickly elaborate complex representations of others based on very little information.</br> </br> ";
-      html += "<b>We will start by providing information about John </b>and your task will be (1) to <b>write a short text </b>about ";
+      html += "<b>We will start by providing information about John</b>. Then, your task will be (1) to <b>write a short text </b>about ";
       html += "John and then (2) to <b>evaluate John </b>on a series of personality traits. </b><br><br>";
       html += "<p></br>Press <span class='light-keys'><kbd>space</kbd></span> to continue</p>";
       return html;
     },
   };
 
+var Instr_2 = {
+    type: "html-keyboard-response",
+    post_trial_gap: 300,
+    choices: [32],
+    stimulus: function() {
+      var html = "";
+      html += "<h1>Study on person perception</h1>";
+      html += "<p class='justify'>On the next slide, we will provide you information about John. <br><br><b>Traits describing John's personality will be <u>automatically displayed </u>on the screen one by one (during 3 seconds each).</b> ";
+      html += "Please <b>read carefully</b> this information and try to keep in mind this information <b>to imagine what kind of person John could be. </b><br><br>";
+      html += "<p></br>Press <span class='light-keys'><kbd>space</kbd></span> to continue</p>";
+      return html;
+    },
+  };
+
+  // Traits exposure ---------------------------------------------------------------------------------------------------------------
+ 
+var stims_warm = [
+  { stimulus: "Intelligent"},
+  { stimulus: "Skillful"},
+  { stimulus: "Industrious"},
+  { stimulus: "Warm"},
+  { stimulus: "Determined"},
+  { stimulus: "Practical"},
+  { stimulus: "Cautious"}
+];
+
+var stims_cold = [
+  { stimulus: "Intelligent"},
+  { stimulus: "Skillful"},
+  { stimulus: "Industrious"},
+  { stimulus: "Cold"},
+  { stimulus: "Determined"},
+  { stimulus: "Practical"},
+  { stimulus: "Cautious"}
+];
+
+var stims     = undefined;
+switch (cond_warmth) {
+  case "warm":
+    stims = stims_warm;
+    break;
+
+  case "cold":
+    stims = stims_cold;
+    break;
+}
+
+ var traits_display = {
+    timeline_variables: stims,
+    randomize_order: false,
+    choices: jsPsych.NO_KEYS,
+    trial_duration: 3000,
+    post_trial_gap: 500,
+    repetitions: 1, // total: 32 trials
+    on_load: function () {
+      //$('body').css({ "cursor": "none" });
+      $('.jspsych-content').css({ "max-width": "100%" });
+    },
+    timeline: [{
+      type: 'html-keyboard-response',
+      stimulus: function () {
+          var leftImg = jsPsych.timelineVariable('stimulus', true);
+        html = '';
+        html += "<h1><b>" + leftImg + "</h1></b>";
+        return html;
+      },
+      on_finish: function (data) {
+        $('.jspsych-content').css({ "max-width": "90%" });
+        data.task = "traits_display";
+      },
+    }]
+  };
+
   var textbox_warm = {
         timeline: [{
             type: 'survey-text',
-            questions: [{ prompt: "<h1>Study on person perception</h1><p class='justify'>Here is some information about John: <br>John is <b>intelligent, skillful, industrious, warm, determined, practical, and cautious.</b><br><br> Please <b>read carefully</b> this information and try to keep in mind this information <b>to imagine what kind of person John could be. </b>In the response box below, <b>your task is to go beyond this short description and to <u>speculate on how John could be like:</u><b><br><br>", rows: 3, columns: 60 }],
+            questions: [{ prompt: "<h1>Study on person perception</h1><p class='justify'>You just learned that John is <b>intelligent, skillful, industrious, warm, determined, practical, and cautious.</b><br><br> In the response box below, <b>your task is to go beyond this short description and to <u>speculate on how John could be like:</u><b><br><br>", rows: 3, columns: 60 }],
             button_label: "continue",
         }],
       on_load: function() {
@@ -173,7 +245,7 @@
   var textbox_cold = {
         timeline: [{
             type: 'survey-text',
-            questions: [{ prompt: "<h1>Study on person perception</h1><p class='justify'>Here is some information about John: <br>John is <b>intelligent, skillful, industrious, cold, determined, practical, and cautious.</b><br><br> Please <b>read carefully</b> this information and try to keep in mind this information <b>to imagine what kind of person John could be. </b>In the response box below, <b>your task is to go beyond this short description and to <u>speculate on how John could be like:</u><b><br><br>", rows: 3, columns: 60 }],
+            questions: [{ prompt: "<h1>Study on person perception</h1><p class='justify'>You just learned that John is <b>intelligent, skillful, industrious, cold, determined, practical, and cautious.</b><br><br> In the response box below, <b>your task is to go beyond this short description and to <u>speculate on how John could be like:</u><b><br><br>", rows: 3, columns: 60 }],
             button_label: "continue",
         }],
       on_load: function() {
@@ -487,6 +559,8 @@ var Instr_3 = {
 switch(cond_warmth) {
   case "warm":
     timeline.push(Instr_1,
+			      Instr_2,
+			      traits_display,
 				  textbox_warm,
 				  Instr_3,
 				  rating,
@@ -502,6 +576,8 @@ switch(cond_warmth) {
     break;
   case "cold":
     timeline.push(Instr_1,
+    	          Instr_2,
+    	          traits_display,
                   textbox_cold,
                   Instr_3,
                   rating,
